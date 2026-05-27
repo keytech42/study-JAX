@@ -1,0 +1,32 @@
+[project]
+name = "26-05-19-jax"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "dm-haiku>=0.0.16",
+    "importlib-resources==7.1.0",
+    "ipykernel>=7.2.0",
+    "jax==0.7.2",
+    "jaxlib==0.7.2",
+    "matplotlib==3.10.0",
+    "protobuf==5.29.6",
+    "tensorflow==2.20.0",
+    "tensorflow-datasets==4.9.9",
+    "tensorflow-metadata==1.17.3",
+    "tensorflow-probability==0.25.0",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.409",
+]
+docs = [
+    "jupytext>=1.19.3",
+    "markdown-exec[ansi]>=1.12.1",
+    "mkdocs>=1.6.1",
+    "mkdocs-jupyter>=0.26.3",
+    "mkdocs-material>=9.7.6",
+    "mkdocstrings[python]>=1.0.4",
+]
