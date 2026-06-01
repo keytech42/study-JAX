@@ -1,0 +1,1763 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../08_transformer_block_wiring_deep_dive/">
+      
+      
+        <link rel="next" href="../../../notebook/mnist/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>JAX Deep Dive: Pre-LN vs Post-LN의 수학적 증명 (기울기 붕괴의 역학) - 26-05-19-jax Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_markdown_exec_pyodide.css">
+    
+      <link rel="stylesheet" href="../../../assets/_markdown_exec_ansi.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/custom.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/shift-away.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#jax-deep-dive-pre-ln-vs-post-ln" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="26-05-19-jax Documentation" class="md-header__button md-logo" aria-label="26-05-19-jax Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            26-05-19-jax Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              JAX Deep Dive: Pre-LN vs Post-LN의 수학적 증명 (기울기 붕괴의 역학)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../MEMORY/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  JAX Learning Memory Index
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../example/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Markdown Execution with Matplotlib &amp; Caching
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../test_annotation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Test Annotation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../debugging/" class="md-tabs__link">
+          
+  
+  
+  Educational
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../notebook/mnist/" class="md-tabs__link">
+          
+  
+  
+  Notebook
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="26-05-19-jax Documentation" class="md-nav__button md-logo" aria-label="26-05-19-jax Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    26-05-19-jax Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../MEMORY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Learning Memory Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Markdown Execution with Matplotlib &amp; Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../test_annotation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Annotation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Educational
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Educational
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debugging
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Debugging
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debugging Problems Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1_2" id="__nav_5_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    001 jax shape mismatch
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    001 jax shape mismatch
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../debugging/001-jax-shape-mismatch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Shape 불일치 및 언패킹 에러 (Shape Mismatch & Silent Unpacking)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../debugging/001-jax-shape-mismatch/problem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX 기반 MNIST 다층 퍼셉트론 구현
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fundamentals/00_environment_and_dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Setup &amp; Dependency Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fundamentals/05_jax_prng_and_state_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 순수 함수, 상태(State), 그리고 PRNG의 철학
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fundamentals/07_jax_tracing_and_tracers_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 인터프리터 설계와 추적기(Tracer)의 마법
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fundamentals/10_jax_optimization_and_optax_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 기울기 메커니즘과 Optax 최적화 (순수 함수의 학습법)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fundamentals/11_dot_vs_matmul_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: jnp.dot vs jnp.matmul (선형대수 vs 텐서 기하학)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mnist
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Mnist
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mnist/04_dataset_prefetch_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX &amp; TensorFlow Deep Dive: Dataset Pipelining &amp; prefetch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Transformer
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_self_attention_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX &amp; Haiku Deep Dive: SelfAttention Module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_dense_block_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX &amp; Haiku Deep Dive: DenseBlock &amp; __call__
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_layer_norm_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX &amp; Haiku Deep Dive: Layer Normalization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_haiku_oop_vs_jax_purity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 순수 함수형 엔진 위의 객체 지향 (Haiku OOP vs JAX Purity)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_transformer_block_wiring_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 트랜스포머 블록 조립과 Pre-LN 철학
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: Pre-LN vs Post-LN의 수학적 증명 (기울기 붕괴의 역학)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: Pre-LN vs Post-LN의 수학적 증명 (기울기 붕괴의 역학)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 수식 읽기: 딥러닝을 위한 미적분학 직관
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 수식 읽기: 딥러닝을 위한 미적분학 직관">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-chain-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) 연쇄 법칙 (Chain Rule): 오차의 전달
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-jacobian-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) 야코비안 행렬 (Jacobian Matrix): 다차원 공간의 돋보기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-matrix-norm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) 행렬 노름 (Matrix Norm): 행렬의 덩치
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-variance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 층이 깊어지면 분산(Variance)은 왜 커지는가?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-post-ln" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Post-LN의 수학적 해체 (왜 실패했는가?)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-pre-ln" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pre-LN의 수학적 구원 (왜 성공했는가?)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-jax-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 프레임워크 생태계: JAX, PyTorch는 이를 어떻게 다루는가?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebook
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebook
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../notebook/mnist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX 기반 MNIST 다층 퍼셉트론 구현
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../notebook/transformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 수식 읽기: 딥러닝을 위한 미적분학 직관
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 수식 읽기: 딥러닝을 위한 미적분학 직관">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-chain-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) 연쇄 법칙 (Chain Rule): 오차의 전달
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-jacobian-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) 야코비안 행렬 (Jacobian Matrix): 다차원 공간의 돋보기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-matrix-norm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) 행렬 노름 (Matrix Norm): 행렬의 덩치
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-variance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 층이 깊어지면 분산(Variance)은 왜 커지는가?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-post-ln" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Post-LN의 수학적 해체 (왜 실패했는가?)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-pre-ln" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pre-LN의 수학적 구원 (왜 성공했는가?)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-jax-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 프레임워크 생태계: JAX, PyTorch는 이를 어떻게 다루는가?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="jax-deep-dive-pre-ln-vs-post-ln">JAX Deep Dive: Pre-LN vs Post-LN의 수학적 증명 (기울기 붕괴의 역학)</h1>
+<p>이 문서는 이전 문서(<a href="../08_transformer_block_wiring_deep_dive/">Transformer Block Wiring</a>)에서 정성적으로만 다루었던 <strong>"Post-LN 구조에서 층이 깊어질수록 왜 기울기(Gradient)가 폭발하거나 소실되는가?"</strong>를 증명한다.</p>
+<p>단, 수학적 배경이 완벽하지 않은 독자도 직관적으로 이해할 수 있도록, 미적분학의 핵심 개념(연쇄 법칙, 야코비안 행렬, 노름)을 먼저 일상적인 비유로 풀어낸 뒤 소진적(Exhaustive)인 증명으로 진입한다.</p>
+<hr />
+<h2 id="1">1. 수식 읽기: 딥러닝을 위한 미적분학 직관</h2>
+<p>본격적인 증명에 앞서, 우리가 사용할 세 가지 수학적 도구의 '느낌'을 잡아보자.</p>
+<h3 id="1-chain-rule">1) 연쇄 법칙 (Chain Rule): 오차의 전달</h3>
+<p>연쇄 법칙은 톱니바퀴들이 맞물려 돌아가는 것과 같다.
+A 톱니바퀴가 한 바퀴 돌 때 B 톱니가 2바퀴 돌고, B가 한 바퀴 돌 때 C가 3바퀴 돈다면? A가 한 바퀴 돌면 C는 총 <span class="arithmatex">\(2 \times 3 = 6\)</span> 바퀴를 돈다.
+딥러닝에서 역전파(Backpropagation)는 맨 끝단(Loss)에서 발생한 오차를 맨 처음 층까지 전달하는 과정이다. 각 층(톱니바퀴)이 오차를 얼마나 증폭시켰는지(혹은 축소시켰는지)를 <strong>모두 곱해서</strong> 맨 앞단에 도달하는 것이 연쇄 법칙이다.</p>
+<h3 id="2-jacobian-matrix">2) 야코비안 행렬 (Jacobian Matrix): 다차원 공간의 돋보기</h3>
+<p>고등학교 미적분에서 <span class="arithmatex">\(y = 3x\)</span>를 미분하면 3이다. 이는 <span class="arithmatex">\(x\)</span>가 1만큼 변할 때 <span class="arithmatex">\(y\)</span>는 3만큼 변한다는 뜻이다.
+하지만 딥러닝에서 데이터는 단순한 숫자(<span class="arithmatex">\(x\)</span>)가 아니라 수백 개의 숫자가 모인 '벡터(Vector)'다. <strong>"입력 벡터가 미세하게 꿈틀거릴 때, 출력 벡터는 어느 방향으로 얼마나 요동치는가?"</strong>를 거대한 표(행렬)로 정리해 놓은 것이 바로 <strong>야코비안 행렬(<span class="arithmatex">\(J\)</span>)</strong>이다.
+즉, 야코비안 행렬은 "해당 층(Layer)이 오차 신호를 얼마나 뻥튀기하거나 찌그러뜨리는지"를 나타내는 <strong>증폭기(Amplifier)의 스펙표</strong>다.</p>
+<h3 id="3-matrix-norm">3) 행렬 노름 (Matrix Norm): 행렬의 덩치</h3>
+<p>야코비안 행렬 안에는 수많은 숫자가 들어있다. "그래서 이 행렬은 전체적으로 값이 얼마나 큰 건데?"라고 물었을 때, 행렬의 전체적인 덩치(영향력)를 하나의 숫자(스칼라)로 요약해 주는 함수가 노름(Norm)이다.
+야코비안 행렬의 노름이 <span class="arithmatex">\(1\)</span>보다 크면 기울기가 폭발(Exploding)하고, <span class="arithmatex">\(1\)</span>보다 작으면 기울기가 소실(Vanishing)된다고 이해하면 된다. 우리의 목표는 이 크기가 <strong>최대한 <span class="arithmatex">\(1\)</span>(<span class="arithmatex">\(\approx I\)</span>, 단위 행렬)을 유지하도록 아키텍처를 짜는 것</strong>이다.</p>
+<hr />
+<h2 id="2-variance">2. 층이 깊어지면 분산(Variance)은 왜 커지는가?</h2>
+<p>본격적인 수식에 들어가기 앞서, 트랜스포머가 층을 통과할 때마다 데이터의 덩치(분산)가 어떻게 변하는지 알아보자.
+잔차 연결(Residual Connection)의 수식은 <span class="arithmatex">\(x_{new} = x_{old} + F(x_{old})\)</span> 다.</p>
+<ul>
+<li><span class="arithmatex">\(x_{old}\)</span>: 기존 데이터 (고속도로)</li>
+<li><span class="arithmatex">\(F(x_{old})\)</span>: 새로운 정보 (옆길에서 계산된 값)</li>
+</ul>
+<p>통계학에서 서로 독립적인 두 변수를 더할 때, <strong>전체 분산은 각 변수의 분산의 합</strong>이 된다 (<span class="arithmatex">\(V(A+B) = V(A) + V(B)\)</span>).
+즉, 층(Layer)을 하나 지날 때마다 기존 데이터에 새로운 정보가 '더해지므로', 데이터가 가지는 변동성(분산, Variance)은 층의 개수 <span class="arithmatex">\(L\)</span>에 비례하여 점점 커지게 된다. 분산이 <span class="arithmatex">\(L\)</span>에 비례하여 커지면, 데이터의 흩어짐을 나타내는 <strong>표준편차 <span class="arithmatex">\(\sigma\)</span>는 <span class="arithmatex">\(\sqrt{L}\)</span>에 비례하여 커진다.</strong></p>
+<hr />
+<h2 id="3-post-ln">3. Post-LN의 수학적 해체 (왜 실패했는가?)</h2>
+<p>초기 트랜스포머가 채택했던 Post-LN의 수식을 <span class="arithmatex">\(l\)</span>번째 층에 대해 써보자. (편의상 Sublayer를 <span class="arithmatex">\(F\)</span>로 표기한다.)</p>
+<div class="arithmatex">\[ x_{l+1} = \text{LayerNorm}(x_l + F_l(x_l)) \]</div>
+<p>이제 이 식을 <span class="arithmatex">\(x_l\)</span>에 대해 미분하여 야코비안 증폭기 비율을 구해보자. LayerNorm 함수 자체의 야코비안을 <span class="arithmatex">\(J_{LN}\)</span>이라고 하면 연쇄 법칙에 의해 다음과 같이 전개된다.</p>
+<div class="arithmatex">\[ \frac{\partial x_{l+1}}{\partial x_l} = J_{LN} \cdot \frac{\partial (x_l + F_l(x_l))}{\partial x_l} $$
+$$ \frac{\partial x_{l+1}}{\partial x_l} = J_{LN} \cdot \left( I + \frac{\partial F_l(x_l)}{\partial x_l} \right) \]</div>
+<div class="admonition abstract">
+<p class="admonition-title">치명적인 수학적 병목: LayerNorm의 야코비안 <span class="arithmatex">\(J_{LN}\)</span></p>
+<p>LayerNorm은 데이터를 평균 0, 분산 1로 억누르는 정규화 함수다. 입력 데이터의 크기(표준편차 <span class="arithmatex">\(\sigma\)</span>)가 크면 클수록, 이를 1로 맞추기 위해 강하게 짓눌러야(나누어야) 한다.
+수학적으로 볼 때, LayerNorm의 야코비안 행렬 크기(노름)는 <strong>입력 텐서의 표준편차에 정확히 반비례(<span class="arithmatex">\(\propto \frac{1}{\sigma}\)</span>)</strong>하게 된다.</p>
+</div>
+<p>자, 이제 순전파(Forward Pass)와 역전파(Backward Pass)가 만나는 재앙을 상상해 보자.
+1. <strong>순전파:</strong> 앞서 설명했듯, 데이터가 층을 지나며 더해질수록 맨 끝단(출력단)의 분산은 기하급수적으로 커지고, 표준편차 <span class="arithmatex">\(\sigma\)</span>는 <span class="arithmatex">\(\sqrt{L}\)</span>에 비례하여 거대해진다.
+2. <strong>역전파:</strong> 거대해진 데이터를 억누르기 위해 LayerNorm은 엄청난 힘으로 데이터를 나눴을 것이다. 이로 인해 끝단 층들의 야코비안 <span class="arithmatex">\(J_{LN}\)</span> 크기는 <span class="arithmatex">\(\frac{1}{\sqrt{L}}\)</span>에 비례하여 <strong>엄청나게 작아져 버린다.</strong></p>
+<p>결론적으로, 맨 끝단에서 발생한 오차가 맨 앞단으로 전달될 때, 각 층을 지날 때마다 작은 값(<span class="arithmatex">\(\frac{1}{\sqrt{L}}\)</span>)이 연쇄적으로 곱해진다.
+기울기는 대략 <strong><span class="arithmatex">\(\left(\frac{1}{\sqrt{L}}\right)^L\)</span> 이라는 끔찍한 비율로 소실(Vanishing)</strong>된다. <span class="arithmatex">\(L=100\)</span>층만 되어도 맨 앞단은 아무런 학습 신호(오차 피드백)를 받지 못하고 붕괴(Collapse)해버리는 것이다.</p>
+<div class="admonition info">
+<p class="admonition-title">제약(Constraint) vs 관례(Convention): Learning Rate Warm-up</p>
+<p>이 기울기 소실을 막기 위해 구글은 초기 학습률을 0으로 둔 뒤 아주 서서히 올리는 <strong>Learning Rate Warm-up</strong> 기법을 사용했다. 이것은 우아한 수학적인 해법이 아니라, 기울기가 붕괴하는 극초기 상태를 억지로 모면하기 위해 도입한 <strong>임시방편적 꼼수(Pragmatic Hack)</strong>에 불과했다. 아키텍처 자체가 결함을 안고 있었던 것이다.</p>
+</div>
+<hr />
+<h2 id="4-pre-ln">4. Pre-LN의 수학적 구원 (왜 성공했는가?)</h2>
+<p>이제 최신 트랜스포머가 채택한 Pre-LN의 수식을 보자. 정규화(LayerNorm)를 덧셈 바깥이 아니라, 덧셈 안쪽(옆길)에만 적용했다.</p>
+<div class="arithmatex">\[ x_{l+1} = x_l + F_l(\text{LayerNorm}(x_l)) \]</div>
+<p>마찬가지로 이 식을 <span class="arithmatex">\(x_l\)</span>에 대해 미분하여 야코비안을 구해본다. 덧셈을 기준으로 미분이 나뉜다.</p>
+<div class="arithmatex">\[ \frac{\partial x_{l+1}}{\partial x_l} = \frac{\partial x_l}{\partial x_l} + \frac{\partial F_l(\text{LayerNorm}(x_l))}{\partial x_l} $$
+$$ \frac{\partial x_{l+1}}{\partial x_l} = I + \frac{\partial F_l}{\partial \text{LN}} \cdot J_{LN} \]</div>
+<div class="admonition note">
+<p class="admonition-title">비교 분석: 야코비안 구조의 극적인 변화</p>
+<p>Post-LN의 수식이 <span class="arithmatex">\(J_{LN} \cdot (I + \dots)\)</span> 형태여서 전체 행렬이 <span class="arithmatex">\(J_{LN}\)</span>의 작은 크기에 묶여서 지배당했던 반면, Pre-LN의 수식에서는 <strong>단위 행렬 <span class="arithmatex">\(I\)</span> (Identity Matrix)가 완전히 독립적으로 덧셈 밖으로 빠져나와 있다!</strong></p>
+</div>
+<p>이것이 의미하는 바는 엄청나다. 연쇄 법칙으로 <span class="arithmatex">\(N\)</span>개의 층을 연달아 곱해보자.</p>
+<div class="arithmatex">\[ \prod_{l=1}^{N} \left( I + \frac{\partial F_l}{\partial \text{LN}} \cdot J_{LN} \right) \]</div>
+<p>수식을 전개해보면 항상 <strong><span class="arithmatex">\(I + (\text{나머지 찌꺼기들})\)</span></strong> 형태가 유지된다. 단위 행렬 <span class="arithmatex">\(I\)</span>는 1과 같아서 100번을 곱해도 그대로 <span class="arithmatex">\(I\)</span>다.
+즉, 오차 기울기가 역전파될 때, 어떠한 층의 분산이나 LayerNorm의 축소 효과(<span class="arithmatex">\(J_{LN}\)</span>)에도 방해받지 않고 <strong><span class="arithmatex">\(I\)</span>라는 완벽하게 보존된 1:1 고속도로를 타고 1번째 층까지 직행</strong>한다!</p>
+<p>이 수학적 성질(단위 행렬 <span class="arithmatex">\(I\)</span>의 덧셈 분리) 덕분에 Pre-LN 구조는 층이 수십, 수백 개로 깊어져도 초기 기울기가 붕괴하지 않는다. 따라서 귀찮고 불안정한 Warm-up 꼼수 없이도 즉시 거대한 학습률(Learning Rate)을 적용하여(Scale-up) 안정적으로 훈련할 수 있게 된 것이다.</p>
+<hr />
+<h2 id="5-jax-pytorch">5. 프레임워크 생태계: JAX, PyTorch는 이를 어떻게 다루는가?</h2>
+<p>이러한 아키텍처적 진화(Pre-LN의 표준화)는 JAX나 PyTorch 같은 프레임워크의 미분 엔진 자체를 바꾸지는 않는다. 프레임워크의 Autograd는 <span class="arithmatex">\(x + F(LN(x))\)</span> 든 <span class="arithmatex">\(LN(x + F(x))\)</span> 든 개발자가 짠 수식 그대로 기계적으로 야코비안 연쇄 법칙을 수행해 줄 뿐이다.</p>
+<p>하지만 커뮤니티의 <strong>기본 제공 API(Standard Library)</strong>의 형태를 완전히 바꾸어 놓았다.</p>
+<div class="admonition question">
+<p class="admonition-title">프레임워크 라이브러리의 진화</p>
+<ul>
+<li><strong>PyTorch의 <code>nn.TransformerEncoderLayer</code>:</strong> 초기에는 구글의 원본 논문을 따라 철저히 Post-LN 방식으로 하드코딩되어 있었다. 하지만 층을 깊게 쌓으려는 개발자들이 기울기 붕괴로 고통받자, PyTorch는 1.9 버전부터 부랴부랴 <code>norm_first=True</code>라는 파라미터를 추가하여 Pre-LN 모드를 지원하기 시작했다.</li>
+<li><strong>JAX / Haiku / Flax:</strong> JAX 생태계의 신경망 라이브러리들은 구글 원본 논문의 잔재(Post-LN)를 버리고, 우리가 <code>src/transformer.py</code>에서 구현한 것처럼 클래스 내부에서 명시적으로 정규화를 먼저 호출(<code>query=layer_norm(x)</code>)하는 함수형 조합을 기본 예제로 강력하게 권장하고 있다.</li>
+</ul>
+</div>
+<p>결론적으로, 딥러닝에서 '더하기(<code>+</code>)의 순서' 하나를 괄호 안팎으로 바꾸는 것은 단순한 취향의 차이가 아니다. 역전파 야코비안 행렬의 전개식을 완전히 뒤바꾸어, <span class="arithmatex">\(\frac{1}{\sqrt{L}}\)</span>의 저주에 갇힐 것인가, 아니면 단위 행렬 <span class="arithmatex">\(I\)</span>의 고속도로를 탈 것인가를 결정하는 고도의 수학적 설계인 것이다.</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "navigation.tabs"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../assets/_markdown_exec_pyodide.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/@popperjs/core@2"></script>
+      
+        <script src="https://unpkg.com/tippy.js@6"></script>
+      
+        <script src="../../../javascripts/notebook_annotations.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

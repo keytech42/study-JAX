@@ -1,0 +1,1771 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../05_jax_prng_and_state_deep_dive/">
+      
+      
+        <link rel="next" href="../10_jax_optimization_and_optax_deep_dive/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>JAX Deep Dive: 인터프리터 설계와 추적기(Tracer)의 마법 - 26-05-19-jax Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_markdown_exec_pyodide.css">
+    
+      <link rel="stylesheet" href="../../../assets/_markdown_exec_ansi.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/custom.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/shift-away.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#jax-deep-dive-tracer" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="26-05-19-jax Documentation" class="md-header__button md-logo" aria-label="26-05-19-jax Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            26-05-19-jax Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              JAX Deep Dive: 인터프리터 설계와 추적기(Tracer)의 마법
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../MEMORY/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  JAX Learning Memory Index
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../example/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Markdown Execution with Matplotlib &amp; Caching
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../test_annotation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Test Annotation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../debugging/" class="md-tabs__link">
+          
+  
+  
+  Educational
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../notebook/mnist/" class="md-tabs__link">
+          
+  
+  
+  Notebook
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="26-05-19-jax Documentation" class="md-nav__button md-logo" aria-label="26-05-19-jax Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    26-05-19-jax Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../MEMORY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Learning Memory Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Markdown Execution with Matplotlib &amp; Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../test_annotation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Annotation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Educational
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Educational
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debugging
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Debugging
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debugging Problems Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1_2" id="__nav_5_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    001 jax shape mismatch
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    001 jax shape mismatch
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../debugging/001-jax-shape-mismatch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Shape 불일치 및 언패킹 에러 (Shape Mismatch & Silent Unpacking)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../debugging/001-jax-shape-mismatch/problem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX 기반 MNIST 다층 퍼셉트론 구현
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_environment_and_dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Setup &amp; Dependency Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_jax_prng_and_state_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 순수 함수, 상태(State), 그리고 PRNG의 철학
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 인터프리터 설계와 추적기(Tracer)의 마법
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 인터프리터 설계와 추적기(Tracer)의 마법
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 핵심 문제: 동적 언어와 정적 컴파일러의 간극
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 멘탈 모델과 비교 철학: 그래프를 그리는 세 가지 방법
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-jaxcoretracer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 심층 기전: jax.core.Tracer의 동작 원리
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 심층 기전: jax.core.Tracer의 동작 원리">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tracer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tracer 객체의 실체
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-haiku-tracer-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Haiku의 기적: Tracer를 가로채어 상태(State) 적출하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Haiku의 기적: Tracer를 가로채어 상태(State) 적출하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pure_init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pure_init이 호출될 때 일어나는 일
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 결론: 환상을 걷어내다
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_jax_optimization_and_optax_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 기울기 메커니즘과 Optax 최적화 (순수 함수의 학습법)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_dot_vs_matmul_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: jnp.dot vs jnp.matmul (선형대수 vs 텐서 기하학)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mnist
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Mnist
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mnist/04_dataset_prefetch_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX &amp; TensorFlow Deep Dive: Dataset Pipelining &amp; prefetch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Transformer
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transformer/01_self_attention_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX &amp; Haiku Deep Dive: SelfAttention Module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transformer/02_dense_block_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX &amp; Haiku Deep Dive: DenseBlock &amp; __call__
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transformer/03_layer_norm_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX &amp; Haiku Deep Dive: Layer Normalization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transformer/06_haiku_oop_vs_jax_purity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 순수 함수형 엔진 위의 객체 지향 (Haiku OOP vs JAX Purity)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transformer/08_transformer_block_wiring_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: 트랜스포머 블록 조립과 Pre-LN 철학
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transformer/09_post_ln_vs_pre_ln_math_deep_dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX Deep Dive: Pre-LN vs Post-LN의 수학적 증명 (기울기 붕괴의 역학)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebook
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebook
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../notebook/mnist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JAX 기반 MNIST 다층 퍼셉트론 구현
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../notebook/transformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 핵심 문제: 동적 언어와 정적 컴파일러의 간극
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 멘탈 모델과 비교 철학: 그래프를 그리는 세 가지 방법
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-jaxcoretracer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 심층 기전: jax.core.Tracer의 동작 원리
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 심층 기전: jax.core.Tracer의 동작 원리">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tracer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tracer 객체의 실체
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-haiku-tracer-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Haiku의 기적: Tracer를 가로채어 상태(State) 적출하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Haiku의 기적: Tracer를 가로채어 상태(State) 적출하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pure_init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pure_init이 호출될 때 일어나는 일
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 결론: 환상을 걷어내다
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="jax-deep-dive-tracer">JAX Deep Dive: 인터프리터 설계와 추적기(<abbr title="JAX가 파이썬 함수의 연산 흐름을 추적하기 위해 삽입하는, Shape과 Dtype 정보만을 가진 스파이(가짜) 객체.">Tracer</abbr>)의 마법</h1>
+<p>이 문서는 이전 문서에서 타협(생략)했던 심연의 영역, <strong>"Haiku는 대체 어떻게 파이썬의 OOP 코드 속에서 가중치를 적출해 내는가?"</strong>에 대한 완벽한 기술적 해답을 제시한다.</p>
+<p>이를 이해하기 위해서는 JAX가 파이썬 코드를 기계어(XLA)로 번역하기 위해 사용하는 핵심 기전인 <strong>추적(Tracing)</strong>과 <strong>추적기(<abbr title="JAX가 파이썬 함수의 연산 흐름을 추적하기 위해 삽입하는, Shape과 Dtype 정보만을 가진 스파이(가짜) 객체.">Tracer</abbr>)</strong> 객체의 동작 원리, 그리고 컴파일러 설계의 근본적인 한계를 해부해야 한다.</p>
+<hr />
+<h2 id="1">1. 핵심 문제: 동적 언어와 정적 컴파일러의 간극</h2>
+<p>파이썬(Python)은 한 줄씩 코드를 읽고 실행하는 인터프리터 언어(동적 언어)다. <code>if</code>문이나 <code>for</code>문이 실행 시간에 결정되며, 변수의 타입도 그때그때 바뀐다.
+반면 XLA 컴파일러는 C++처럼 미리 전체 구조가 확정된 정적 연산 그래프(Static Computation Graph)를 요구한다. 모든 행렬의 크기(Shape)와 데이터 타입(Dtype)이 사전에 완벽히 계산되어 있어야 GPU 메모리를 미리 할당하고 연산을 재배치할 수 있기 때문이다.</p>
+<p><strong>문제의 본질:</strong> 동적이고 유연한 파이썬 함수 <code>def f(x): ...</code> 를 어떻게 뼈대만 앙상하게 남은 정적 수학 그래프(XLA HLO)로 변환할 것인가?</p>
+<hr />
+<h2 id="2">2. 멘탈 모델과 비교 철학: 그래프를 그리는 세 가지 방법</h2>
+<p>이 간극을 메우기 위해 딥러닝 프레임워크들은 각기 다른 철학을 채택했다.</p>
+<div class="admonition question">
+<p class="admonition-title">PyTorch는 어떻게 코드를 그래프로 만드는가?</p>
+<ul>
+<li><strong>과거의 PyTorch (Eager Execution):</strong> 그래프를 "미리" 그리지 않는다. 파이썬이 <code>x + y</code>를 실행할 때 백그라운드(C++)에서 즉시 연산을 수행하고, 그 결과를 바탕으로 뒤늦게 미분(Autograd)을 위한 동적 그래프를 쌓아 나간다. (매우 직관적이지만 AOT 컴파일과 최적화에는 불리하다.)</li>
+<li><strong>최신 PyTorch (<code>torch.compile</code> &amp; Dynamo):</strong> 파이썬의 <strong>바이트코드(<abbr title="파이썬 인터프리터가 실행하기 위해 소스 코드를 컴파일한 중간 단계의 저수준 코드. PyTorch Dynamo가 이 바이트코드를 분석해 그래프를 생성한다.">Bytecode</abbr>)</strong> 자체를 후킹(Hooking)하여 분석한다. 파이썬이 실행할 명령어의 흐름을 가로채서 그래프로 만든다. 매우 강력한 엔지니어링이지만, 내부 구조가 극도로 복잡하다.</li>
+</ul>
+</div>
+<div class="admonition question">
+<p class="admonition-title">TensorFlow는 어떻게 코드를 그래프로 만드는가?</p>
+<ul>
+<li><strong>AutoGraph (<code>tf.function</code>):</strong> 파이썬 소스 코드의 <strong>추상 구문 트리(<abbr title="Abstract Syntax Tree. 소스 코드를 문자열 그대로 해석하여 문법적 구조를 트리 형태로 나타낸 것. TensorFlow의 AutoGraph가 이를 파싱해 사용한다.">AST</abbr>, Abstract Syntax Tree)</strong>를 직접 파싱하여 분석한다. 파이썬의 <code>for</code>문이나 <code>if</code>문을 텍스트 레벨에서 분석하여 텐서플로우 전용 그래프 노드(<code>tf.while_loop</code>, <code>tf.cond</code>)로 억지로 번역한다. 버그가 났을 때 추적하기가 악명 높게 어렵다.</li>
+</ul>
+</div>
+<div class="admonition abstract">
+<p class="admonition-title">JAX의 철학: 가짜 실행을 통한 추적 (Tracing as Mock Execution)</p>
+<p>JAX는 소스 코드를 뜯어보거나(<abbr title="Abstract Syntax Tree. 소스 코드를 문자열 그대로 해석하여 문법적 구조를 트리 형태로 나타낸 것. TensorFlow의 AutoGraph가 이를 파싱해 사용한다.">AST</abbr>) 바이트코드를 해킹하지 않는다. 대신 <strong>JAX는 파이썬 인터프리터 위에서 코드를 한 번 "가짜로 실행(Mock Execution)" 시켜본다.</strong>
+이때 파이썬 함수에 진짜 데이터(예: <code>np.array</code>)를 넣는 것이 아니라, 오직 모양(Shape)과 타입(Dtype) 정보만 가진 텅 빈 스파이 객체인 <strong>추적기(<abbr title="JAX가 파이썬 함수의 연산 흐름을 추적하기 위해 삽입하는, Shape과 Dtype 정보만을 가진 스파이(가짜) 객체.">Tracer</abbr>)</strong>를 집어넣는다.</p>
+</div>
+<hr />
+<h2 id="3-jaxcoretracer">3. 심층 기전: <code>jax.core.Tracer</code>의 동작 원리</h2>
+<p>JAX의 핵심은 파이썬의 매직 메서드(Magic Methods) 오버라이딩에 있다.</p>
+<h3 id="tracer"><abbr title="JAX가 파이썬 함수의 연산 흐름을 추적하기 위해 삽입하는, Shape과 Dtype 정보만을 가진 스파이(가짜) 객체.">Tracer</abbr> 객체의 실체</h3>
+<p>JAX의 <code>jit</code> 컴파일러는 함수를 처음 호출할 때 입력값 <code>x</code>를 <code>jax.core.Tracer</code> (구체적으로는 <code>ShapedArray</code>)라는 특수한 객체로 감싼다.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;현재 x의 정체:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="c1"># (1)!</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># 함수 호출</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">f</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]))</span>
+</span></code></pre></div>
+<ol>
+<li>함수가 JIT 컴파일될 때 이 <code>print</code>문이 실행되는데, 출력 결과는 실제 배열 <code>[1.0, 2.0]</code>이 아니라 <code>Traced&lt;ShapedArray(float32[2])&gt;</code>이다!</li>
+</ol>
+<p>파이썬 인터프리터가 <code>x * 2</code>라는 코드를 실행하려고 시도할 때, <code>x</code>는 실제 숫자가 아니라 <code>Tracer</code> 객체이므로 파이썬의 <code>__mul__</code> 매직 메서드가 호출된다.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Tracer</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="c1"># 1. 실제 곱셈 연산을 하지 않는다!</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="c1"># 2. 대신 중앙 기록 장치(Jaxpr Builder)에 &quot;곱셈 연산 노드를 추가해 줘&quot;라고 기록한다.</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        <span class="n">jaxpr_builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;multiply&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>        <span class="c1"># 3. 새로운 결과물의 모양을 계산해서 새로운 Tracer를 반환한다.</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>        <span class="k">return</span> <span class="n">Tracer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+</span></code></pre></div>
+<p>이처럼 <code>Tracer</code> 객체가 파이썬 함수의 흐름을 따라 이리저리 굴러다니면서 만나는 모든 연산(<code>+</code>, <code>-</code>, <code>jnp.sum</code> 등)을 중간 표현식인 <strong><abbr title="JAX Expression. 파이썬 코드가 Tracer에 의해 추적된 후 생성되는, 부작용이 없고 상태가 분리된 JAX의 자체적인 중간 그래프 표현식.">Jaxpr</abbr> (JAX Expression)</strong>라는 리스트에 차곡차곡 기록해 나가는 과정이 바로 <strong>추적(Tracing)</strong>이다.
+추적이 끝나면 JAX는 완성된 <abbr title="JAX Expression. 파이썬 코드가 Tracer에 의해 추적된 후 생성되는, 부작용이 없고 상태가 분리된 JAX의 자체적인 중간 그래프 표현식.">Jaxpr</abbr> 그래프를 XLA 컴파일러에 넘겨 초고속 기계어로 번역한다.</p>
+<hr />
+<h2 id="4-haiku-tracer-state">4. Haiku의 기적: Tracer를 가로채어 상태(State) 적출하기</h2>
+<p>이제 다시 우리의 메인 질문으로 돌아오자. <code>hk.transform</code>은 어떻게 파이썬 OOP 코드(<code>DenseBlock</code>)에서 가중치(파라미터)를 모아낼 수 있을까?</p>
+<p>Haiku는 JAX의 이 "추적(Tracing)" 시스템에 무임승차(Piggyback)하는 천재적인 라이브러리다.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">haiku</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hk</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">my_network</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">layer</span> <span class="o">=</span> <span class="n">hk</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span> <span class="c1"># (1)!</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="k">return</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">pure_init</span><span class="p">,</span> <span class="n">pure_apply</span> <span class="o">=</span> <span class="n">hk</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">my_network</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="pure_init"><code>pure_init</code>이 호출될 때 일어나는 일</h3>
+<ol>
+<li>개발자가 <code>pure_init(key, x)</code>를 호출하면, Haiku는 내부적으로 빈 딕셔너리(<code>params = {}</code>)를 하나 만든다.</li>
+<li>그리고 JAX에게 지시하여 입력 데이터 <code>x</code>를 <code>Tracer</code> 객체로 바꾼 뒤 <code>my_network</code> 함수를 가짜로 실행(Trace)시킨다.</li>
+<li><code>layer(x)</code>가 호출될 때 (즉 <code>hk.Linear.__call__</code> 내부가 실행될 때), <code>hk.Linear</code>는 파라미터가 필요한 위치(<code>w</code>, <code>b</code>)에서 일반적인 난수 생성을 하는 대신, <strong>현재 진행 중인 추적 과정의 흐름을 가로챈다(Intercept).</strong></li>
+<li><code>hk.Linear</code>는 난수 <code>key</code>를 사용해 실제 가중치 행렬 <span class="arithmatex">\(W\)</span>를 생성한 다음, 이를 Haiku가 미리 만들어둔 전역 딕셔너리 <code>params</code>에 <code>{"Linear": {"w": W, "b": b}}</code> 형태로 <strong>몰래 기록(Register)</strong>해 둔다.</li>
+<li>동시에 함수 내부의 연산은 JAX의 <code>Tracer</code>에 의해 정상적으로 <abbr title="JAX Expression. 파이썬 코드가 Tracer에 의해 추적된 후 생성되는, 부작용이 없고 상태가 분리된 JAX의 자체적인 중간 그래프 표현식.">Jaxpr</abbr> 그래프로 기록된다.</li>
+<li>가짜 실행이 끝나면, Haiku는 기록이 완료된 꽉 찬 <code>params</code> 딕셔너리를 사용자에게 반환한다!</li>
+</ol>
+<div class="admonition info">
+<p class="admonition-title">제약(Constraint) vs 관례(Convention): 부작용(Side Effect)의 위험성</p>
+<p>이 놀라운 추적 시스템에는 치명적인 <strong>제약(Constraint)</strong>이 있다. Tracer는 파이썬 제어 흐름만 따라가기 때문에, 파이썬의 외부 상태를 변경하는 코드(예: 전역 리스트에 <code>append</code> 하기, 파일에 쓰기)는 <strong>컴파일(Trace)될 때 단 한 번만 실행되고, 이후 XLA로 최적화된 코드가 실행될 때는 완전히 증발해 버린다.</strong> 이것이 바로 앞선 <a href="../05_jax_prng_and_state_deep_dive/">PRNG Deep Dive</a> 문서에서 "JAX는 무조건 순수 함수여야 한다"고 강력하게 주장했던 기술적 밑바탕이다.</p>
+</div>
+<hr />
+<h2 id="5">5. 결론: 환상을 걷어내다</h2>
+<p>결론적으로, 우리가 <code>src/transformer.py</code>에 작성한 <code>class DenseBlock(hk.Module)</code>는 진짜로 객체 인스턴스가 되어 메모리에 상주하며 텐서 연산을 수행하는 녀석이 아니다.</p>
+<p>Haiku의 OOP 클래스들은 파이썬 코드가 한 번 가짜로 실행(Trace)되는 동안, <strong>자기 자신에게 필요한 파라미터가 무엇인지 딕셔너리에 명시적으로 등록해 주고 장렬히 산화하는 일회성 "템플릿(Template)" 또는 "공장(Factory)" 역할</strong>을 할 뿐이다.
+모든 추적이 끝난 후 남는 것은 철저히 분해되어 상태(가중치 딕셔너리)와 분리된, 극도로 순수한 <span class="arithmatex">\(f(W, x)\)</span> 형태의 수학적 그래프(<abbr title="JAX Expression. 파이썬 코드가 Tracer에 의해 추적된 후 생성되는, 부작용이 없고 상태가 분리된 JAX의 자체적인 중간 그래프 표현식.">Jaxpr</abbr>/HLO)뿐이다. 이것이 바로 JAX 생태계가 OOP의 탈을 쓰고 극단적인 순수 함수형 철학을 유지하는 메커니즘이다.</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "navigation.tabs"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../assets/_markdown_exec_pyodide.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/@popperjs/core@2"></script>
+      
+        <script src="https://unpkg.com/tippy.js@6"></script>
+      
+        <script src="../../../javascripts/notebook_annotations.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

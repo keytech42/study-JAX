@@ -1,0 +1,93 @@
+/* ============================================================
+   Jupyter Notebook Custom Annotations (Powered by Tippy.js)
+   ============================================================ */
+.nb-annotation {
+    position: relative;
+    display: inline-block;
+}
+
+/* 네이티브 md-annotation__index 와 완전히 동일한 CSS */
+.nb-annotation__badge {
+    align-items: center;
+    background-color: var(--md-code-annotation-bg-color, var(--md-default-fg-color--lightest, #eee));
+    border-radius: 100%;
+    color: var(--md-code-annotation-fg-color, var(--md-default-bg-color, #fff));
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--md-text-font-family, var(--md-text-font, sans-serif));
+    font-size: .8em;
+    font-weight: 700;
+    height: 1.5em;
+    justify-content: center;
+    line-height: normal;
+    margin-inline-start: .25em;
+    min-width: 1.5em;
+    transition: color .25s, background-color .25s, transform .25s;
+    user-select: none;
+    vertical-align: text-top;
+    z-index: 1;
+}
+
+.nb-annotation__badge:hover,
+.nb-annotation__badge[aria-expanded="true"] {
+    background-color: var(--md-accent-fg-color, #526cfe);
+    color: var(--md-accent-bg-color, #fff);
+    transform: scale(1.1);
+}
+
+/* 
+ * Tippy.js 커스텀 테마 (mkdocs-jupyter)
+ * MkDocs Material의 기본 툴팁(md-tooltip)과 100% 동일한 디자인 적용
+ */
+.tippy-box[data-theme~='mkdocs-jupyter'] {
+    background-color: var(--md-default-fg-color, #000);
+    color: var(--md-default-bg-color, #fff);
+    border-radius: 0.2rem;
+    font-size: 0.64rem;
+    font-family: var(--md-text-font, sans-serif);
+    line-height: 1.5;
+    box-shadow: var(--md-shadow-z2);
+    padding: 0.2rem 0.2rem;
+}
+
+.tippy-box[data-theme~='mkdocs-jupyter'] > .tippy-content {
+    padding: 0.4rem 0.6rem;
+}
+
+/* 툴팁 내부 마크다운 코드 블록 스타일링 */
+.tippy-box[data-theme~='mkdocs-jupyter'] code {
+    background-color: var(--md-code-bg-color, rgba(0, 0, 0, 0.05));
+    border-radius: 0.1rem;
+    padding: 0 0.2em;
+    font-size: 0.85em;
+    font-family: var(--md-code-font-family, monospace);
+    word-break: break-word;
+}
+[data-md-color-scheme="slate"] .tippy-box[data-theme~='mkdocs-jupyter'] code {
+    background-color: var(--md-code-bg-color, rgba(255, 255, 255, 0.1));
+}
+
+/* 다크모드 대응 (테마 반전 유지) */
+[data-md-color-scheme="slate"] .tippy-box[data-theme~='mkdocs-jupyter'] {
+    background-color: var(--md-default-fg-color);
+    color: var(--md-default-bg-color);
+}
+
+/* 기본 화살표(말풍선 꼬리) 색상 동기화 */
+.tippy-box[data-theme~='mkdocs-jupyter'][data-placement^='top'] > .tippy-arrow::before {
+    border-top-color: var(--md-default-fg-color, #000);
+}
+.tippy-box[data-theme~='mkdocs-jupyter'][data-placement^='bottom'] > .tippy-arrow::before {
+    border-bottom-color: var(--md-default-fg-color, #000);
+}
+.tippy-box[data-theme~='mkdocs-jupyter'][data-placement^='left'] > .tippy-arrow::before {
+    border-left-color: var(--md-default-fg-color, #000);
+}
+.tippy-box[data-theme~='mkdocs-jupyter'][data-placement^='right'] > .tippy-arrow::before {
+    border-right-color: var(--md-default-fg-color, #000);
+}
+
+[data-md-color-scheme="slate"] .tippy-box[data-theme~='mkdocs-jupyter'][data-placement^='top'] > .tippy-arrow::before { border-top-color: var(--md-default-fg-color); }
+[data-md-color-scheme="slate"] .tippy-box[data-theme~='mkdocs-jupyter'][data-placement^='bottom'] > .tippy-arrow::before { border-bottom-color: var(--md-default-fg-color); }
+[data-md-color-scheme="slate"] .tippy-box[data-theme~='mkdocs-jupyter'][data-placement^='left'] > .tippy-arrow::before { border-left-color: var(--md-default-fg-color); }
+[data-md-color-scheme="slate"] .tippy-box[data-theme~='mkdocs-jupyter'][data-placement^='right'] > .tippy-arrow::before { border-right-color: var(--md-default-fg-color); }
