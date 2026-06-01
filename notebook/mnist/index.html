@@ -8,6 +8,8 @@
       
       
       
+        <link rel="canonical" href="https://keytech42.github.io/study-JAX/notebook/mnist/">
+      
       
         <link rel="prev" href="../../educational/transformer/09_post_ln_vs_pre_ln_math_deep_dive/">
       
@@ -2275,7 +2277,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <!-- End of mermaid configuration --><div class="jupyter-wrapper">
 <div class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=c6a4a837">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cd93aee6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2302,7 +2304,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=c0eaee41">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24e12538">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2331,7 +2333,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87129841">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6902e310">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2343,7 +2345,7 @@ TensorFlow Datasets를 활용하여 MNIST 데이터를 불러오고 전처리한
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=043574c3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11787e5b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2355,7 +2357,7 @@ TensorFlow의 로깅 시스템이 출력하는 불필요한 C++ 및 Python 레�
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64358880">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f1510400">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2426,7 +2428,7 @@ data_test = data["test"]</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1b20f5b0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bdd0e799">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2438,7 +2440,7 @@ data_test = data["test"]</div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=965a2f73">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d2a6163d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2511,7 +2513,7 @@ for i in range(ROWS * COLS):
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1f26e047">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1f53a89f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2527,7 +2529,7 @@ CPU가 다음 배치의 데이터를 백그라운드에서 미리 준비(I/O Ove
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8dbc091f">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8104ffda">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2584,7 +2586,7 @@ test_data = tfds.as_numpy(data_test.map(preprocess).batch(32).prefetch(1))</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=54f4f793">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88803a56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2599,7 +2601,7 @@ test_data = tfds.as_numpy(data_test.map(preprocess).batch(32).prefetch(1))</div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6188419d">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ef1c654d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2697,7 +2699,7 @@ Layer 1 - Weight shape: (10, 512), Bias shape: (10,)
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f4f078c2">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=25a7da49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2768,7 +2770,7 @@ def predict(
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8df551cb">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2b5a16ee">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2812,7 +2814,7 @@ print(preds.shape)</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=df9d8093">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=527279f9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2824,7 +2826,7 @@ print(preds.shape)</div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f2b0c28f">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=aa2afa4e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2874,7 +2876,7 @@ except Exception as e:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a116111f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6afbede8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2893,7 +2895,7 @@ except Exception as e:
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f57b7498">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=d55f0f94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2926,7 +2928,7 @@ batched_predict = vmap(predict, in_axes=(None, 0))
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8733b108">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3d1f44c3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2968,7 +2970,7 @@ print(batched_preds.shape)</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36474acd">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d23c6e09">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2979,7 +2981,7 @@ print(batched_preds.shape)</div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6dd337ef">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=751c57df">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3024,7 +3026,7 @@ def loss(params, images, targets):
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0cc7d808">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8907c97b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3035,7 +3037,7 @@ def loss(params, images, targets):
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37f117e7">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71878871">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3102,7 +3104,7 @@ def update(
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6822df43">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=789cb721">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3228,8 +3230,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 0 in 27.69s
- Eval in 5.63s
+<pre>Epoch 0 in 27.16s
+ Eval in 5.08s
    train loss: 0.4109187424182892
    train acc: 0.9291833639144897
    test acc: 0.930111825466156
@@ -3240,8 +3242,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 1 in 25.13s
- Eval in 4.88s
+<pre>Epoch 1 in 26.07s
+ Eval in 4.28s
    train loss: 0.37751224637031555
    train acc: 0.9491333365440369
    test acc: 0.9504792094230652
@@ -3252,8 +3254,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 2 in 24.99s
- Eval in 4.87s
+<pre>Epoch 2 in 25.40s
+ Eval in 5.83s
    train loss: 0.37092116475105286
    train acc: 0.9599000215530396
    test acc: 0.9585662484169006
@@ -3264,8 +3266,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 3 in 24.81s
- Eval in 4.86s
+<pre>Epoch 3 in 24.00s
+ Eval in 4.22s
    train loss: 0.36739057302474976
    train acc: 0.9663166999816895
    test acc: 0.9634584784507751
@@ -3276,8 +3278,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 4 in 24.83s
- Eval in 4.87s
+<pre>Epoch 4 in 23.94s
+ Eval in 4.21s
    train loss: 0.3650307059288025
    train acc: 0.9709166884422302
    test acc: 0.9674520492553711
@@ -3288,9 +3290,9 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 5 in 24.78s
- Eval in 4.83s
-   train loss: 0.36322417855262756
+<pre>Epoch 5 in 24.32s
+ Eval in 4.24s
+   train loss: 0.3632241487503052
    train acc: 0.9741666913032532
    test acc: 0.9702475666999817
 
@@ -3300,8 +3302,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 6 in 25.03s
- Eval in 4.85s
+<pre>Epoch 6 in 25.81s
+ Eval in 4.25s
    train loss: 0.36195459961891174
    train acc: 0.9765833616256714
    test acc: 0.9723442196846008
@@ -3312,8 +3314,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 7 in 24.87s
- Eval in 4.83s
+<pre>Epoch 7 in 24.42s
+ Eval in 4.21s
    train loss: 0.36092472076416016
    train acc: 0.9784833192825317
    test acc: 0.9737420082092285
@@ -3324,9 +3326,9 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 8 in 24.53s
- Eval in 4.86s
-   train loss: 0.360065758228302
+<pre>Epoch 8 in 24.54s
+ Eval in 4.17s
+   train loss: 0.3600657880306244
    train acc: 0.9804333448410034
    test acc: 0.9746405482292175
 
@@ -3336,9 +3338,9 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 9 in 24.00s
- Eval in 4.72s
-   train loss: 0.35933318734169006
+<pre>Epoch 9 in 24.29s
+ Eval in 4.19s
+   train loss: 0.3593331277370453
    train acc: 0.9822500348091125
    test acc: 0.975339412689209
 
@@ -3348,8 +3350,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 10 in 23.59s
- Eval in 4.68s
+<pre>Epoch 10 in 23.87s
+ Eval in 4.15s
    train loss: 0.3586174249649048
    train acc: 0.9836500287055969
    test acc: 0.9765375256538391
@@ -3360,8 +3362,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 11 in 23.99s
- Eval in 4.70s
+<pre>Epoch 11 in 23.61s
+ Eval in 4.13s
    train loss: 0.35808369517326355
    train acc: 0.9848833680152893
    test acc: 0.9773362278938293
@@ -3372,9 +3374,9 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 12 in 23.70s
- Eval in 4.63s
-   train loss: 0.35760632157325745
+<pre>Epoch 12 in 23.67s
+ Eval in 4.13s
+   train loss: 0.35760629177093506
    train acc: 0.9855999946594238
    test acc: 0.9776357412338257
 
@@ -3384,8 +3386,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 13 in 23.68s
- Eval in 4.69s
+<pre>Epoch 13 in 23.29s
+ Eval in 4.12s
    train loss: 0.35717421770095825
    train acc: 0.9863333702087402
    test acc: 0.9780351519584656
@@ -3396,9 +3398,9 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 14 in 23.14s
- Eval in 4.56s
-   train loss: 0.35677972435951233
+<pre>Epoch 14 in 23.19s
+ Eval in 4.08s
+   train loss: 0.3567797541618347
    train acc: 0.9870333671569824
    test acc: 0.978734016418457
 
@@ -3408,8 +3410,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 15 in 23.45s
- Eval in 4.58s
+<pre>Epoch 15 in 23.09s
+ Eval in 4.09s
    train loss: 0.35634589195251465
    train acc: 0.987583339214325
    test acc: 0.9791333675384521
@@ -3420,8 +3422,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 16 in 23.88s
- Eval in 4.60s
+<pre>Epoch 16 in 22.69s
+ Eval in 4.08s
    train loss: 0.3560253977775574
    train acc: 0.9884999990463257
    test acc: 0.979632556438446
@@ -3432,8 +3434,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 17 in 23.80s
- Eval in 4.63s
+<pre>Epoch 17 in 22.41s
+ Eval in 4.03s
    train loss: 0.35572755336761475
    train acc: 0.9891999959945679
    test acc: 0.9800319075584412
@@ -3444,8 +3446,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 18 in 23.55s
- Eval in 4.61s
+<pre>Epoch 18 in 22.32s
+ Eval in 4.11s
    train loss: 0.3554483652114868
    train acc: 0.9896833300590515
    test acc: 0.9801317453384399
@@ -3456,9 +3458,9 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 19 in 23.57s
- Eval in 4.59s
-   train loss: 0.35518571734428406
+<pre>Epoch 19 in 22.34s
+ Eval in 4.05s
+   train loss: 0.35518568754196167
    train acc: 0.9901500344276428
    test acc: 0.9803314805030823
 
@@ -3468,8 +3470,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 20 in 23.80s
- Eval in 4.64s
+<pre>Epoch 20 in 22.26s
+ Eval in 4.08s
    train loss: 0.3548751771450043
    train acc: 0.9906166791915894
    test acc: 0.980930507183075
@@ -3480,8 +3482,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 21 in 23.71s
- Eval in 4.61s
+<pre>Epoch 21 in 22.40s
+ Eval in 4.06s
    train loss: 0.35465070605278015
    train acc: 0.9912333488464355
    test acc: 0.980930507183075
@@ -3492,8 +3494,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 22 in 23.80s
- Eval in 4.54s
+<pre>Epoch 22 in 22.50s
+ Eval in 4.14s
    train loss: 0.3544389307498932
    train acc: 0.9917666912078857
    test acc: 0.9812300205230713
@@ -3504,8 +3506,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 23 in 23.81s
- Eval in 4.56s
+<pre>Epoch 23 in 23.55s
+ Eval in 4.05s
    train loss: 0.35423731803894043
    train acc: 0.9920499920845032
    test acc: 0.9811301827430725
@@ -3516,8 +3518,8 @@ for epoch in range(NUM_EPOCHS):
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Epoch 24 in 23.60s
- Eval in 4.56s
+<pre>Epoch 24 in 23.90s
+ Eval in 4.08s
    train loss: 0.3540450632572174
    train acc: 0.9923166632652283
    test acc: 0.9812300205230713
@@ -3529,7 +3531,7 @@ for epoch in range(NUM_EPOCHS):
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=52da378f">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=23f14f4d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
