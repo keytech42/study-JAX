@@ -4,6 +4,7 @@
 !.agents/
 !.gitignore
 !.python-version
+!.github
 
 # Python-generated files
 __pycache__/
