@@ -1,5 +1,5 @@
 site_name: 26-05-19-jax Documentation
-site_url: ""
+site_url: "https://keytech42.github.io/study-JAX/"
 theme:
   name: material
   features:
