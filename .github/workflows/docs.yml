@@ -30,5 +30,14 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-groups
 
+      - name: Cache mkdocs-jupyter execution results
+        uses: actions/cache@v4
+        with:
+          path: .cache/mkdocs-jupyter
+          key: mkdocs-jupyter-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            mkdocs-jupyter-${{ github.ref }}-
+            mkdocs-jupyter-
+
       - name: Deploy to GitHub Pages
         run: uv run mkdocs gh-deploy --force
