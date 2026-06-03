@@ -50,7 +50,7 @@ data_test = data["test"]
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.rcParams["figure.figsize"] = (10, 5)
+plt.rcParams["figure.figsize"] = [10, 5]
 
 ROWS = 3
 COLS = 10
@@ -58,7 +58,8 @@ COLS = 10
 # 3행 10열의 서브플롯을 생성하여 샘플 이미지를 출력한다.
 fig, ax = plt.subplots(ROWS, COLS)
 
-# take() 반복 시 발생하는 TF 캐시 경고를 방지하기 위해 batch()로 한 번에 가져온다
+# take() 반복 시 발생하는 TF 캐시 경고를 방지하기 위해 batch()로 한 번에 가져온다.
+# 캐시 경고가 뜨는 이유는...
 images, labels = next(iter(data_train.batch(ROWS * COLS)))
 
 for i in range(ROWS * COLS):
@@ -80,7 +81,7 @@ for i in range(ROWS * COLS):
 HEIGHT = 28
 WIDTH = 28
 CHANNELS = 1
-NUM_PIXELS = HEIGHT * WIDTH * CHANNELS
+NUM_PIXELS = HEIGHT * WIDTH * CHANNELS  # 28 * 28 * 1 = 784
 NUM_LABELS = info.features["label"].num_classes  # type: ignore
 
 
@@ -250,10 +251,12 @@ def _batch_accuracy(
     images,
     targets,
 ):
-    images = jnp.reshape(images, (len(images), NUM_PIXELS))
+    images = jnp.reshape(  # (1)! **reshape을 할 때, 어떤 기준으로 조작할 축을 결정하는지?** <br/> → 특정 축(Axis)을 '선택해서' 조작한다기보다는 전체 데이터를 1차원(1D)으로 일렬로 쭉 펼친 다음, 새로운 모양(shape)의 틀에 순서대로 다시 들이붓는 방식.
+        images, (len(images), NUM_PIXELS)
+    )
     predicted_class = jnp.argmax(
         batched_predict(params, images),
-        axis=1,  # (1)! axis=0은 배치 차원이므로
+        axis=1,  # (2)! axis=0은 배치 차원이므로, axis=1 차원 축 사용.
     )
     return jnp.mean(predicted_class == targets)
 
@@ -267,27 +270,66 @@ def accuracy(params, data):
 
 import time
 
-for epoch in range(NUM_EPOCHS):
-    start_time = time.time()
-    losses = []
-    for x, y in train_data:
-        x = jnp.reshape(x, (len(x), NUM_PIXELS))
-        y = one_hot(y, NUM_LABELS)
-        params, loss_value = update(params, x, y, epoch)
-        losses.append(loss_value)
-    epoch_time = time.time() - start_time
 
-    start_time = time.time()
-    train_acc = accuracy(params, train_data)
-    test_acc = accuracy(params, test_data)
-    eval_time = time.time() - start_time
-    print(
-        f"Epoch {epoch} in {epoch_time:.2f}s\n",
-        f"Eval in {eval_time:.2f}s\n",
-        f"  train loss: {jnp.mean(jnp.array(losses))}\n",
-        f"  train acc: {train_acc}\n",
-        f"  test acc: {test_acc}\n",
-    )
+def training_loop() -> None:
+    global params
+
+    for epoch in range(NUM_EPOCHS):
+        start_time = time.time()
+        losses = []
+        for x, y in train_data:
+            x = jnp.reshape(x, (len(x), NUM_PIXELS))
+            y = one_hot(y, NUM_LABELS)
+            params, loss_value = update(params, x, y, epoch)
+            losses.append(loss_value)
+        epoch_time = time.time() - start_time
+
+        start_time = time.time()
+        train_acc = accuracy(params, train_data)
+        test_acc = accuracy(params, test_data)
+        eval_time = time.time() - start_time
+        print(
+            f"Epoch {epoch} in {epoch_time:.2f}s\n",
+            f"Eval in {eval_time:.2f}s\n",
+            f"  train loss: {jnp.mean(jnp.array(losses))}\n",
+            f"  train acc: {train_acc}\n",
+            f"  test acc: {test_acc}\n",
+        )
+
+
+training_loop()
+
 
 # %%
 print(*map(type, [images, labels]), sep="\n")
+
+# %% [markdown]
+# ## JIT 컴파일링
+# XLA 기반의 가속화
+
+# %%
+from jax import jit
+
+
+@jit
+def update(params, x, y, epoch_number):
+    loss_value, grads = value_and_grad(loss)(params, x, y)
+    lr = INIT_LR * DECAY_RATE ** (epoch_number / DECAY_STEPS)
+    return [
+        (w - lr * dw, b - lr * db) for (w, b), (dw, db) in zip(params, grads)
+    ], loss_value
+
+
+@jit
+def _batch_accuracy(params, images, targets):
+    images = jnp.reshape(images, (len(images), NUM_PIXELS))
+    predicted_class = jnp.argmax(batched_predict(params, images), axis=1)
+    return jnp.mean(predicted_class == targets)
+
+
+# %%
+params: list[tuple[Array, Array]] = init_network_params(
+    LAYER_SIZES, random.PRNGKey(0), scale=PARAM_SCALE
+)
+
+training_loop()
