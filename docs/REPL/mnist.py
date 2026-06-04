@@ -1,13 +1,9 @@
 # ruff: noqa: E402
 
-# %% [1]
-# from rich.traceback import install
-# install(show_locals=False)
-
 # %% [markdown]
 # # JAX 기반 MNIST 다층 퍼셉트론 구현
 #
-# 이 문서는 순수 `.py` 파일로 작성되었으나, Jupytext 플러그인을 통해 **Jupyter Notebook** 형식으로 변환되어 실행된다.
+# > *이 문서는 순수 `.py` 파일로 작성되었으나, Jupytext 플러그인을 통해 **Jupyter Notebook** 형식으로 변환되어 실행된다.* \
 # TensorFlow Datasets를 활용하여 MNIST 데이터를 불러오고 전처리한 뒤, JAX를 이용해 간단한 다층 퍼셉트론(MLP)의 가중치를 초기화하는 과정을 단계별로 설명한다.
 
 # %% [markdown]
@@ -33,8 +29,8 @@ info: tfds.core.DatasetInfo
 data, info = tfds.load(  # type: ignore
     name="mnist",
     data_dir=data_dir,
-    as_supervised=True,
-    with_info=True,
+    as_supervised=True,  # (1)! **`False`**(기본값): 데이터가 dict 형태로 반환 (예: {'image': image_tensor, 'label': label_tensor}) <br/> **`True`**: `(image, label)`와 같이 튜플 형태로 데이터를 반환 (예: `(image_tensor, label_tensor)`)
+    with_info=True,  # (2)! **`False`**(기본값): `tf.data.Dataset` 객체만 반환. <br/> **`True`**: `(tf.data.Dataset, tfds.core.DatasetInfo)` 형태로 반환. 두 번째 인자로 넘어오는 info 객체를 통해 데이터셋의 총 샘플 수, 클래스 이름 목록(info.features['label'].names) 등을 확인 가능.
 )
 
 data_train = data["train"]
@@ -243,7 +239,7 @@ def update(
 # %%
 from jax.nn import one_hot
 
-NUM_EPOCHS = 25
+NUM_EPOCHS = 10
 
 
 def _batch_accuracy(
@@ -333,3 +329,24 @@ params: list[tuple[Array, Array]] = init_network_params(
 )
 
 training_loop()
+
+# %% [markdown]
+# ## 모델 저장/배포
+
+# %%
+import pickle
+
+model_weights_file = "mlp_weights.pickle"
+
+with open(model_weights_file, "rb") as f:
+    pickle.dump(params, f)
+
+with open(model_weights_file, "rb") as file:
+    restored_params = pickle.load(file)
+
+
+# %%
+from jax import tree
+
+shapes = tree.map(lambda x: x.shape, params)
+print(shapes)
