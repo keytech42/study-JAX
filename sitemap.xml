@@ -2,86 +2,86 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://keytech42.github.io/study-JAX/MEMORY/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/api/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/example/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/test_annotation/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
+    </url>
+    <url>
+         <loc>https://keytech42.github.io/study-JAX/REPL/mnist/</loc>
+         <lastmod>2026-06-04</lastmod>
+    </url>
+    <url>
+         <loc>https://keytech42.github.io/study-JAX/REPL/transformer/</loc>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/debugging/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/debugging/001-jax-shape-mismatch/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/debugging/001-jax-shape-mismatch/problem/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/fundamentals/00_environment_and_dependencies/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/fundamentals/05_jax_prng_and_state_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/fundamentals/07_jax_tracing_and_tracers_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/fundamentals/10_jax_optimization_and_optax_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/fundamentals/11_dot_vs_matmul_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/mnist/04_dataset_prefetch_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/transformer/01_self_attention_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/transformer/02_dense_block_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/transformer/03_layer_norm_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/transformer/06_haiku_oop_vs_jax_purity/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/transformer/08_transformer_block_wiring_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
     <url>
          <loc>https://keytech42.github.io/study-JAX/educational/transformer/09_post_ln_vs_pre_ln_math_deep_dive/</loc>
-         <lastmod>2026-06-03</lastmod>
-    </url>
-    <url>
-         <loc>https://keytech42.github.io/study-JAX/notebook/mnist/</loc>
-         <lastmod>2026-06-03</lastmod>
-    </url>
-    <url>
-         <loc>https://keytech42.github.io/study-JAX/notebook/transformer/</loc>
-         <lastmod>2026-06-03</lastmod>
+         <lastmod>2026-06-04</lastmod>
     </url>
 </urlset>
