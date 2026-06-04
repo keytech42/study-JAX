@@ -20,6 +20,9 @@ plugins:
   - mkdocs-jupyter:
       execute: true
       include_source: true
+      remove_tag_config:
+        remove_cell_tags:
+          - remove-cell
 
 markdown_extensions:
   - abbr
