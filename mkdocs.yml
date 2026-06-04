@@ -12,6 +12,7 @@ theme:
 plugins:
   - search
   - markdown-exec
+  - awesome-pages
   - mkdocstrings:
       handlers:
         python:

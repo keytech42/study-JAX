@@ -26,6 +26,7 @@ docs = [
     "jupytext>=1.19.3",
     "markdown-exec[ansi]>=1.12.1",
     "mkdocs>=1.6.1",
+    "mkdocs-awesome-pages-plugin>=2.10.1",
     "mkdocs-jupyter>=0.26.3",
     "mkdocs-material>=9.7.6",
     "mkdocstrings[python]>=1.0.4",
