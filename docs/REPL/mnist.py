@@ -339,12 +339,15 @@ import pickle
 
 model_weights_file = "mlp_weights.pickle"
 
-with open(model_weights_file, "rb") as f:
+with open(model_weights_file, "wb") as f:
     pickle.dump(params, f)
 
 with open(model_weights_file, "rb") as file:
     restored_params = pickle.load(file)
 
+
+# %% [markdown]
+# ## etc.
 
 # %%
 from jax import tree

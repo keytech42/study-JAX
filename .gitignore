@@ -20,3 +20,6 @@ wheels/
 
 # Builds
 site/
+
+# Model weights
+*.pickle
