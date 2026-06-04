@@ -1036,7 +1036,7 @@
   <a href="#2-prefetch1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. 파이프라이닝: prefetch(1)의 마법
+        2. 파이프라이닝: prefetch(1)
       
     </span>
   </a>
@@ -1564,7 +1564,7 @@
   <a href="#2-prefetch1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. 파이프라이닝: prefetch(1)의 마법
+        2. 파이프라이닝: prefetch(1)
       
     </span>
   </a>
@@ -1678,7 +1678,9 @@
 
 
 <h1 id="jax-tensorflow-deep-dive-dataset-pipelining-prefetch">JAX &amp; TensorFlow Deep Dive: Dataset Pipelining &amp; <code>prefetch</code></h1>
-<p>이 문서는 딥러닝 모델의 학습 속도를 좌우하는 데이터 파이프라인 최적화, 그중에서도 <code>tf.data.Dataset.prefetch()</code> 함수의 동작 원리에 대해 다룬다.</p>
+<blockquote>
+<p><em>이 문서는 딥러닝 모델의 학습 속도를 좌우하는 데이터 파이프라인 최적화, 그중에서도 <code>tf.data.Dataset.prefetch()</code> 함수의 동작 원리에 대해 다룬다.</em></p>
+</blockquote>
 <hr />
 <h2 id="1-prefetch">1. 병목 현상: <code>prefetch</code>가 없을 때의 상황</h2>
 <p>데이터를 불러오고 전처리하는 일(이미지 리사이징, 정규화, 증강 등)은 보통 <strong>CPU</strong>가 담당한다. 반면 실제 무거운 행렬 연산과 모델 학습은 <strong>GPU(또는 TPU)</strong>가 담당한다.</p>
@@ -1686,59 +1688,61 @@
 1. <strong>CPU:</strong> 디스크에서 1개 배치(Batch) 분량의 데이터를 읽고 전처리한다. (이때 GPU는 연산할 데이터가 없어 대기한다/논다).
 2. <strong>GPU:</strong> CPU가 넘겨준 데이터로 학습을 진행한다. (이때 CPU는 GPU의 학습이 끝날 때까지 대기한다/논다).
 3. <strong>CPU:</strong> GPU 학습이 끝나면 비로소 다음 배치를 준비하기 시작한다... (GPU 다시 대기).</p>
-<p>이처럼 자원이 번갈아 가며 쉬는 현상을 <strong>병목(Bottleneck)</strong>이라고 하며, 훈련 시간을 크게 낭비하게 만든다.</p>
+<p>이처럼 자원이 번갈아 가며 쉬는 현상에 의해 훈련 시간을 크게 낭비하게 만든다.</p>
 <hr />
-<h2 id="2-prefetch1">2. 파이프라이닝: <code>prefetch(1)</code>의 마법</h2>
-<p><code>prefetch(1)</code>을 파이프라인 끝에 추가하면 상황이 완전히 달라진다. (숫자 1은 '1개의 배치'를 미리 준비하라는 뜻이다.)</p>
+<h2 id="2-prefetch1">2. 파이프라이닝: <code>prefetch(1)</code></h2>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">train_data</span> <span class="o">=</span> <span class="n">tfds</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="c1"># 데이터 파이프라인</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">data_train</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">preprocess</span><span class="p">)</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span>
+</span></code></pre></div>
+위 예시 코드에서 파이프라인 끝에 추가한 <code>prefetch(1)</code>은 문제 상황을 개선한다. (참고로 인자로 전달한 숫자 1은 '1개의 배치'를 미리 준비하라는 뜻)</p>
 <ol>
-<li><strong>CPU:</strong> 1번 배치를 준비해 GPU에게 넘긴다.</li>
-<li><strong>GPU:</strong> 1번 배치로 학습을 시작한다.</li>
-<li><strong>CPU (핵심):</strong> GPU가 1번 배치의 학습을 끝내기를 기다리지 않고, <strong>백그라운드에서 즉시 2번 배치를 미리 가공하여 메모리에 대기(prefetch)</strong> 시켜 둔다.</li>
-<li><strong>GPU:</strong> 1번 배치 학습이 끝나자마자 대기 중이던 2번 배치를 낚아채어 쉬지 않고 학습을 이어간다.</li>
+<li><strong>CPU</strong>: 1번 배치를 준비해 GPU에게 넘긴다.</li>
+<li><strong>GPU</strong>: 1번 배치로 학습을 시작한다.</li>
+<li><strong>CPU (핵심)</strong>: GPU가 1번 배치의 학습을 끝내기를 기다리지 않고, <strong>백그라운드에서 즉시 2번 배치를 미리 가공하여 메모리에 대기(prefetch)</strong> 시켜 둔다.</li>
+<li><strong>GPU</strong>: 1번 배치 학습이 끝나자마자 대기 중이던 2번 배치를 낚아채어 쉬지 않고 학습을 이어간다.</li>
 </ol>
-<p>이를 통해 CPU의 데이터 전처리 시간과 GPU의 모델 훈련 시간이 겹치게(Overlap) 되어 전체 학습 시간이 비약적으로 단축된다.</p>
+<p>이를 통해 CPU의 데이터 전처리 시간과 GPU의 모델 훈련 시간이 겹치게(overlap) 되어 전체 학습 시간이 비약적으로 단축된다.</p>
 <hr />
 <h2 id="3-1-prefetchn">3. 심화: 값으로 1이 아니라 더 큰 숫자가 들어가면 어떻게 될까? (<code>prefetch(N)</code>)</h2>
 <p>만약 <code>prefetch(5)</code>처럼 1보다 큰 숫자를 넣는다면 어떻게 될까? 이는 <strong>"CPU가 GPU를 기다리지 않고 최대 5개의 배치를 미리 전처리해서 시스템 메모리(RAM)에 쟁여두라"</strong>는 뜻이다.</p>
 <h3 id="_1">장점 (버퍼링 효과 극대화)</h3>
 <ul>
-<li><strong>들쭉날쭉한 전처리 시간 방어:</strong> 네트워크에서 데이터를 다운로드하면서 학습하거나, 어떤 이미지는 전처리가 유독 오래 걸릴 수 있다. 만약 5개의 배치가 미리 준비되어 있다면(Buffer), CPU의 전처리 속도가 순간적으로 느려지더라도 GPU는 쌓여있는 배치를 소비하며 <strong>단 1초도 쉬지 않고</strong> 훈련을 계속할 수 있다.</li>
+<li><strong>들쭉날쭉한 전처리 시간 방어</strong>: 네트워크에서 데이터를 다운로드하면서 학습하거나, 어떤 이미지는 전처리가 유독 오래 걸릴 수 있다. 만약 5개의 배치가 미리 준비되어 있다면(Buffer), CPU의 전처리 속도가 순간적으로 느려지더라도 GPU는 쌓여있는 배치를 소비하며 <strong>단 1초도 쉬지 않고</strong> 훈련을 계속할 수 있다.</li>
 </ul>
 <h3 id="_2">단점 (메모리 트레이드오프)</h3>
 <ul>
-<li><strong>RAM(시스템 메모리) 고갈:</strong> 미리 준비해두는 배치가 많아질수록 그 데이터를 담아둘 RAM이 더 많이 필요하다. 고해상도 이미지 1개의 배치가 1GB라면, <code>prefetch(10)</code>은 단순히 대기열을 유지하는 데만 10GB의 RAM을 소모하게 된다. 자칫 Out-Of-Memory (OOM) 에러로 시스템이 뻗어버릴 수 있다.</li>
+<li><strong>RAM(시스템 메모리) 고갈</strong>: 미리 준비해두는 배치가 많아질수록 그 데이터를 담아둘 메모리가 더 많이 필요하다. 고해상도 이미지 배치 하나가 1GB라면, <code>prefetch(10)</code>은 단순히 대기열을 유지하는 데만 10GB의 메모리를 사용한다. 자칫 Out-Of-Memory (OOM) 에러로 시스템이 뻗어버릴 수 있다.</li>
 </ul>
 <h3 id="best-practice">결론 및 Best Practice</h3>
 <p>보통의 환경에서는 <code>prefetch(1)</code>이나 <code>prefetch(2)</code>만으로도 충분한 파이프라이닝 효과를 거둘 수 있다. 하지만 개발자가 직접 시스템의 여유 메모리와 훈련 속도를 계산해서 숫자를 기입하는 것은 번거로운 일이다.</p>
-<p>따라서 현대의 딥러닝 코드에서는 프레임워크가 현재 시스템의 가용 메모리와 CPU/GPU 속도를 실시간으로 모니터링하여 <strong>최적의 prefetch 개수를 스스로 동적으로 조절하도록</strong> 지시하는 방법을 가장 많이 사용한다.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 가장 권장되는 패턴 (자동 최적화)</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">train_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">AUTOTUNE</span><span class="p">)</span>
+<p>따라서 현대의 딥러닝 코드에서는 프레임워크가 현재 시스템의 가용 메모리와 CPU/GPU 속도를 실시간으로 모니터링하여 <strong>최적의 prefetch 개수를 스스로 동적으로 조절</strong>하도록 지시하는 방법을 가장 많이 사용한다: <code>tf.data.AUTOTUNE</code></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 권장 패턴 (자동 최적화)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">train_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">AUTOTUNE</span><span class="p">)</span>
 </span></code></pre></div>
 <hr />
 <h2 id="4-jax-tensorflow-pytorch">4. 프레임워크 생태계: JAX, TensorFlow, PyTorch의 데이터 로딩 철학</h2>
-<p>앞서 살펴본 <code>tf.data.Dataset</code>과 <code>tfds</code>는 이름에서 알 수 있듯 본질적으로 <strong>TensorFlow 생태계의 기술</strong>이다. JAX를 배우면서 왜 TensorFlow의 데이터 로더를 사용하는 것일까?</p>
+<p>앞서 살펴본 <code>tf.data.Dataset</code>과 <code>tfds</code>는 이름에서 알 수 있듯 본질적으로 <strong>TensorFlow 생태계의 기술</strong>이다. JAX를 배우면서 왜 TensorFlow의 데이터 로더를 사용할까?</p>
 <h3 id="jax">JAX의 철학: "데이터 로딩은 남의 것을 빌려 쓴다"</h3>
-<p>JAX는 자신을 "데이터를 다루는 종합 프레임워크"가 아니라, <strong>"배열을 빠르게 연산하고 미분해 주는 초고속 수학 엔진"</strong>으로 한정하여 정의한다. 따라서 JAX 커뮤니티는 데이터 로더를 새로 발명하는 대신, 이미 업계 최고 수준으로 구축된 TensorFlow나 PyTorch의 데이터 파이프라인을 그대로 가져다 쓰는 실용적인 방식을 취한다.
-코드 마지막에 <code>tfds.as_numpy(...)</code>로 파이프라인을 감싸준 이유가 바로 이것이다. "TF 파이프라인으로 데이터를 빠르게 준비한 뒤, 마지막 순간에 JAX가 이해할 수 있는 순수 NumPy 배열 형태로 변환해서 넘겨라"라는 뜻이다.</p>
+<p>JAX는 자신을 "데이터를 다루는 종합 프레임워크"가 아니라, <strong>"배열을 빠르게 연산하고 미분해 주는 초고속 수학 엔진"</strong>으로 한정하여 정의한다. 따라서 JAX 커뮤니티는 데이터 로더를 새로 발명하는 대신, 이미 업계 최고 수준으로 구축된 TensorFlow나 PyTorch의 데이터 파이프라인을 그대로 가져다 쓰는 실용적인 방식을 취한다.  \
+파이프라인 코드를 <code>tfds.as_numpy(...)</code>로 감싸준 이유이다. "TF 파이프라인으로 데이터를 빠르게 준비한 뒤, 마지막 순간에 JAX가 이해할 수 있는 순수 NumPy 배열 형태로 변환해서 넘겨라"라는 뜻이다.</p>
 <h3 id="pipelining">프레임워크별 파이프라이닝(Pipelining) 비교</h3>
 <p>데이터 전처리와 모델 학습을 병렬로 처리하여 병목을 해결하는 원리는 완벽히 동일하지만, 프레임워크마다 이를 구현하는 API 방식에 차이가 있다.</p>
 <ul>
-<li>
-<p><strong>TensorFlow (<code>tf.data</code>)</strong>:</p>
-<ul>
+<li><strong>TensorFlow (<code>tf.data</code>)</strong>:</li>
 <li><strong><code>prefetch(N)</code></strong>: 파이프라인 그래프의 끝단에서 N개의 배치를 백그라운드로 미리 준비하도록 지시한다.</li>
-<li>특징: 세밀한 노드 단위의 파이프라인 튜닝과 동적 최적화(<code>AUTOTUNE</code>)에 강점이 있다.</li>
-</ul>
+<li>
+<p>특징: 세밀한 노드 단위의 파이프라인 튜닝과 동적 최적화(<code>AUTOTUNE</code>)에 강점이 있다.</p>
 </li>
 <li>
 <p><strong>PyTorch (<code>DataLoader</code>)</strong>:</p>
-<ul>
+</li>
 <li><strong><code>num_workers=N</code></strong>: 메인 프로세스(GPU 훈련)가 도는 동안 N개의 서브 CPU 프로세스를 띄워 백그라운드에서 다음 배치를 미리 가져오게(Fetch) 한다. (<code>prefetch</code>와 동일한 역할)</li>
 <li><strong><code>pin_memory=True</code></strong>: 준비된 데이터를 CPU의 페이지되지 않는 메모리(Pinned Memory)에 올려두어, GPU로 전송하는 속도를 극대화하는 PyTorch 특유의 최적화 기술이다.</li>
 </ul>
-</li>
-</ul>
 <p>결론적으로 <code>prefetch</code>나 <code>num_workers</code>가 해결하고자 하는 <strong>"CPU-GPU의 병행 처리(Pipelining)" 개념은 프레임워크의 종류와 무관하게 100% 동일하게 적용되는 딥러닝 시스템의 핵심 기본기</strong>이다.</p>
+<!-- TODO: TF와 PT와의 더 심층적인 비교를 코드 기반으로 작성 -->
 
 
 
