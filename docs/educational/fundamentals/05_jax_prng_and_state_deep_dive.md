@@ -1,6 +1,6 @@
 # JAX Deep Dive: 순수 함수, 상태(State), 그리고 PRNG의 철학
 
-이 문서는 JAX 생태계에서 가장 이질적이고 진입 장벽이 높은 개념인 **난수 생성(PRNG)과 상태 관리**를 심층 해부한다. `src/mnist.py`에 등장하는 파라미터 초기화 코드를 바탕으로, **"왜 JAX는 NumPy나 PyTorch가 제공하는 편리한 난수 생성 방식을 거부하고 개발자를 괴롭히는가?"**라는 본질적인 질문에 대해 컴파일러 아키텍처 수준까지 파고들어 논리적 인과관계를 밝힌다.
+이 문서는 JAX 생태계에서 가장 이질적이고 진입 장벽이 높은 개념인 **난수 생성(PRNG)과 상태 관리**를 심층 해부한다. `docs/REPL/mnist.py`에 등장하는 파라미터 초기화 코드를 바탕으로, **"왜 JAX는 NumPy나 PyTorch가 제공하는 편리한 난수 생성 방식을 거부하고 개발자를 괴롭히는가?"**라는 본질적인 질문에 대해 컴파일러 아키텍처 수준까지 파고들어 논리적 인과관계를 밝힌다.
 
 ---
 
@@ -13,9 +13,9 @@
 
 ```python
 import numpy as np
-np.random.seed(42)          
-a = np.random.normal()      
-b = np.random.normal()      
+np.random.seed(42)
+a = np.random.normal()
+b = np.random.normal()
 ```
 
 위 코드에서 `np.random.normal()`은 겉보기엔 입력 인자가 없는 빈 괄호 `()`이다. 하지만 내부적으로는 이전에 설정된 `42`라는 상태(State)를 읽어와 난수 `a`를 도출하고, 그 즉시 내부 메모리의 상태 값을 다른 값(예: `43`)으로 몰래 갱신한다. 이 때문에 다음 호출 시 난수 `b`는 `a`와 다른 값이 나올 수 있다. 이렇게 함수 외부에 숨겨져 알아서 갱신되는 값을 **전역 상태(Global State)**라고 한다.
@@ -86,7 +86,7 @@ JAX의 PRNG는 내부적으로 기존과 다른 해시(Hash) 기반 알고리즘
 
 ## 4. `mnist.py` 코드 심층 분석 (Deep Dive Mechanics)
 
-이 철학이 `src/mnist.py`의 파라미터 초기화에 어떻게 적용되었는지 살펴보자.
+이 철학이 `docs/REPL/mnist.py`의 파라미터 초기화에 어떻게 적용되었는지 살펴보자.
 
 ```python
 def init_network_params(sizes, key=random.PRNGKey(0), scale=1e-2): # (1)!

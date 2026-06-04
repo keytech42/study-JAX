@@ -3,7 +3,8 @@
 # %% [markdown]
 # # JAX 기반 MNIST 다층 퍼셉트론 구현
 #
-# > *이 문서는 순수 `.py` 파일로 작성되었으나, Jupytext 플러그인을 통해 **Jupyter Notebook** 형식으로 변환되어 실행된다.* \
+# > *이 문서는 순수 `.py` 파일로 작성되었으나, Jupytext 플러그인을 통해 **Jupyter Notebook** 형식으로 변환되어 실행된다.*
+#
 # TensorFlow Datasets를 활용하여 MNIST 데이터를 불러오고 전처리한 뒤, JAX를 이용해 간단한 다층 퍼셉트론(MLP)의 가중치를 초기화하는 과정을 단계별로 설명한다.
 
 # %% [markdown]
