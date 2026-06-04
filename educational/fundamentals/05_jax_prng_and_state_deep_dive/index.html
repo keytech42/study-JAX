@@ -1668,7 +1668,7 @@
 
 
 <h1 id="jax-deep-dive-state-prng">JAX Deep Dive: 순수 함수, 상태(State), 그리고 PRNG의 철학</h1>
-<p>이 문서는 JAX 생태계에서 가장 이질적이고 진입 장벽이 높은 개념인 <strong>난수 생성(<abbr title="Pseudo-Random Number Generator. 결정론적인 알고리즘을 통해 난수처럼 보이는 수열을 생성하는 프로그램.">PRNG</abbr>)과 상태 관리</strong>를 심층 해부한다. <code>docs/REPL/mnist.py</code>에 등장하는 파라미터 초기화 코드를 바탕으로, <strong>"왜 JAX는 NumPy나 PyTorch가 제공하는 편리한 난수 생성 방식을 거부하고 개발자를 괴롭히는가?"</strong>라는 본질적인 질문에 대해 컴파일러 아키텍처 수준까지 파고들어 논리적 인과관계를 밝힌다.</p>
+<p>이 문서는 JAX 생태계에서 가장 이질적이고 진입 장벽이 높은 개념인 <strong>난수 생성(<abbr title="Pseudo-Random Number Generator. 결정론적인 알고리즘을 통해 난수처럼 보이는 수열을 생성하는 프로그램.">PRNG</abbr>)과 상태 관리</strong>를 심층 해부한다. <a href="../../../REPL/mnist/"><code>docs/REPL/mnist.py</code></a>에 등장하는 파라미터 초기화 코드를 바탕으로, <strong>"왜 JAX는 NumPy나 PyTorch가 제공하는 편리한 난수 생성 방식을 거부하고 개발자를 괴롭히는가?"</strong>라는 본질적인 질문에 대해 컴파일러 아키텍처 수준까지 파고들어 논리적 인과관계를 밝힌다.</p>
 <hr />
 <h2 id="1-the-core-problem-contextual-definitions">1. 핵심 문제와 용어 정의 (The Core Problem &amp; Contextual Definitions)</h2>
 <h3 id="state">본 문서에서 정의하는 '상태(State)'</h3>
@@ -1737,7 +1737,7 @@
 '생성'은 무언가 새로운 임의의 상태가 만들어짐을 암시하지만, <code>split</code>은 <strong>하나의 부모 키로부터 암호학적으로 안전하게, 절대 겹치지 않는(Non-overlapping) 두 개의 의사 난수 스트림(Stream)을 결정론적으로 파생시킨다</strong>는 기하학적 의미를 명확히 하기 위해 선택된 명명법이다.</p>
 <hr />
 <h2 id="4-mnistpy-deep-dive-mechanics">4. <code>mnist.py</code> 코드 심층 분석 (Deep Dive Mechanics)</h2>
-<p>이 철학이 <code>docs/REPL/mnist.py</code>의 파라미터 초기화에 어떻게 적용되었는지 살펴보자.</p>
+<p>이 철학이 <a href="../../../REPL/mnist/#4-jax-prng"><code>docs/REPL/mnist.py</code></a>의 파라미터 초기화에 어떻게 적용되었는지 살펴보자.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">init_network_params</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">):</span> <span class="c1"># (1)!</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">random_layer_params</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">):</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>        <span class="n">w_key</span><span class="p">,</span> <span class="n">b_key</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>                           <span class="c1"># (2)!</span>
